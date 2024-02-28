@@ -25,12 +25,12 @@ SECRET_KEY = 'django-insecure-tyqbbbx98cqf&qz-+ezfs%v*t4ukip5jn&cys&h9ew))znhgzz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['testserver']  # Добавляем 'testserver' в список разрешенных хостов
 
 # Application definition
 
 INSTALLED_APPS = [
+    'study_product',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -115,7 +115,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'  # Добавляем слэш в конце STATIC_URL
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
