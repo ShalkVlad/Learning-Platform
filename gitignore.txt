@@ -1,0 +1,21 @@
+# Virtual environment
+venv/
+venv-bkp/
+
+# IDE
+.idea/
+
+# Compiled Python files
+*.pyc
+
+# Backup files
+*~
+
+# Database
+db.sqlite3
+
+# Static files
+staticfiles/
+
+# Media files
+media/
