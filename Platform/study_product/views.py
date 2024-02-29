@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.contrib.auth.models import User
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -52,7 +53,7 @@ def product_lessons(request, product_id):
 
 
 # Определяем функцию для распределения пользователя по группам продукта
-def distribute_user_to_group(user, product):
+def distribute_user(user, product):
     # Проверяем, если дата начала продукта в будущем, то добавляем пользователя в группу с наименьшим числом учеников
     if product.start_date > datetime.now():
         groups = product.group_set.annotate(num_students=Count('students')).order_by('num_students')
@@ -66,3 +67,34 @@ def distribute_user_to_group(user, product):
             if group.num_students < average_students:
                 group.students.add(user)
                 break
+
+
+@api_view(['GET'])
+def product_statistics(request, product_id):
+    # Получаем объект продукта по его идентификатору
+    product = get_object_or_404(Product, pk=product_id)
+
+    # 1. Количество учеников занимающихся на продукте
+    num_students = Group.objects.filter(product=product).aggregate(total_students=Count('students'))[
+                       'total_students'] or 0
+
+    # 2. Процент заполненности групп
+    max_users = product.max_users
+    avg_students = Group.objects.filter(product=product).aggregate(avg_students=Count('students') / max_users)[
+                       'avg_students'] or 0
+    fill_percent = (avg_students / max_users) * 100 if max_users > 0 else 0
+
+    # 3. Процент приобретения продукта
+    total_users = User.objects.count()  # Общее количество пользователей на платформе
+    access_count = product.group_set.count()  # Количество полученных доступов к продукту
+    purchase_percent = (access_count / total_users) * 100 if total_users > 0 else 0
+
+    # Формируем данные о статистике продукта
+    data = {
+        'num_students': num_students,
+        'fill_percent': fill_percent,
+        'purchase_percent': purchase_percent
+    }
+
+    # Возвращаем ответ с данными о статистике продукта
+    return Response(data)
