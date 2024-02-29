@@ -98,3 +98,41 @@ def product_statistics(request, product_id):
 
     # Возвращаем ответ с данными о статистике продукта
     return Response(data)
+
+
+@api_view(['GET'])
+def product_statistics_list(request):
+    # Получаем все продукты из базы данных
+    products = Product.objects.all()
+    data = []
+
+    # Для каждого продукта рассчитываем статистику и добавляем в список данных
+    for product in products:
+        # 1. Количество учеников занимающихся на продукте
+        num_students = Group.objects.filter(product=product).aggregate(total_students=Count('students'))[
+                           'total_students'] or 0
+
+        # 2. Процент заполненности групп
+        max_users = product.max_users
+        avg_students = Group.objects.filter(product=product).aggregate(avg_students=Count('students') / max_users)[
+                           'avg_students'] or 0
+        fill_percent = (avg_students / max_users) * 100 if max_users > 0 else 0
+
+        # 3. Процент приобретения продукта
+        total_users = User.objects.count()
+        access_count = product.group_set.count()
+        purchase_percent = (access_count / total_users) * 100 if total_users > 0 else 0
+
+        # Формируем данные о статистике продукта
+        product_data = {
+            'product_id': product.id,
+            'product_name': product.name,
+            'num_students': num_students,
+            'fill_percent': fill_percent,
+            'purchase_percent': purchase_percent
+        }
+
+        data.append(product_data)
+
+    # Возвращаем ответ с данными о статистике продуктов
+    return Response(data)
